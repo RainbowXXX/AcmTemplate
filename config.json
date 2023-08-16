@@ -1,0 +1,12 @@
+{
+  "template_path": "./src/",
+  "exclude_files": ["file1.cpp", "file2.py"],
+  "exclude_folders": ["folder1", "folder2"],
+  "output_file": "output.md",
+  "support_language": {
+    ".cpp": "c++",
+    ".py": "python",
+    ".conf": ""
+  }
+}
+  
