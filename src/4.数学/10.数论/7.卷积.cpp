@@ -1,12 +1,18 @@
 namespace cov {
 	struct Complex {
-		double x, y;
-		Complex(double _x = 0.0, double _y = 0.0) { x = _x; y = _y; }
-		Complex(const std::complex<double>& v) { x = v.real(), y = v.imag(); }
-		operator std::complex<double>() { return std::complex<double>(x, y); }
-		Complex operator+(const Complex& b) const { return Complex(x + b.x, y + b.y); }
-		Complex operator-(const Complex& b) const { return Complex(x - b.x, y - b.y); }
-		Complex operator*(const Complex& b) const { return Complex(x * b.x - y * b.y, x * b.y + y * b.x); }
+	protected:
+		double re, im;
+	public:
+		double real() { return re; }
+		double imag() { return im; }
+		void real(double value) { re = value; }
+		void imag(double value) { im = value; }
+		Complex(double re = {}, double im = {}) : re(re), im(im) {}
+		Complex(const std::complex<double>& v) { re = v.real(), im = v.imag(); }
+		operator std::complex<double>() { return std::complex<double>(re, im); }
+		Complex operator+(const Complex& b) const { return Complex(re + b.re, im + b.im); }
+		Complex operator-(const Complex& b) const { return Complex(re - b.re, im - b.im); }
+		Complex operator*(const Complex& b) const { return Complex(re * b.re - im * b.im, re * b.im + im * b.re); }
 	};
 	template <int mod1 = 998244353, int mod2 = 1004535809, int mod3 = 469762049>
 	struct MttInt {
@@ -74,8 +80,8 @@ namespace cov {
 		}
 		if (mode == 1) return;
 		for (int i = 0; i < limit; i++) {
-			factor[i].x = factor[i].x / limit;
-			factor[i].y = factor[i].y / limit;
+			factor[i].real(factor[i].real() / limit);
+			factor[i].imag(factor[i].imag() / limit);
 		}
 	}
 	template<typename IntegralClass, size_t factorsize>
@@ -134,17 +140,17 @@ namespace cov {
 	template<size_t size1, size_t size2, size_t anssize>
 	inline int MYCALL fftmul(ll(&factor1)[size1], int len1, ll(&factor2)[size2], int len2, ll(&ans)[anssize]) {
 		int limit = 1, t = len1 + len2;
-		static Complex y[std::max(size1, size2)];
+		static std::Complex y[std::max(size1, size2)];
 		while (limit < t) limit <<= 1;
 		ensure(limit <= size1); ensure(limit <= size2); ensure(limit <= anssize);
 		for (int i = 0; i < limit; i++) {
-			y[i].x = i < len1 ? (double)factor1[i] : 0;
-			y[i].y = i < len2 ? (double)factor2[i] : 0;
+			y[i].real(i < len1 ? (double)factor1[i] : 0);
+			y[i].imag(i < len2 ? (double)factor2[i] : 0);
 		}
 		FFT(y, limit, 1);
 		for (int i = 0; i < limit; i++) y[i] = y[i] * y[i];
 		FFT(y, limit, -1);
-		for (int i = 0; i < limit; i++) ans[i] = (ll)(y[i].y / 2.0 + 0.5);
+		for (int i = 0; i < limit; i++) ans[i] = (ll)(y[i].imag() / 2.0 + 0.5);
 		return limit;
 	}
 	template<typename IntegralClass, size_t size1, size_t size2, size_t anssize>
