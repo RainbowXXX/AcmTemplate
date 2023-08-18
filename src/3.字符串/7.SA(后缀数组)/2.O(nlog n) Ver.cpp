@@ -1,3 +1,4 @@
+//兼容SA_IS
 namespace SA {
 	int cnt[N], tp[N], rk[N], ht[N], sa[N], n, m;
 
@@ -15,7 +16,6 @@ namespace SA {
 		for (int i = 1; i < m; i++) cnt[i] += cnt[i - 1];
 		for (int i = n - 1; i >= 0; i--) sa[--cnt[rk[i]]] = i;
 
-		// int p = -1;
 		int p = -1;
 		for (int k = 1; k <= n; k <<= 1, m = p + 1, p = -1) {
 			for (int i = n - 1; i >= n - k; i--) tp[++p] = i;
