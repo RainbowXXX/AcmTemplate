@@ -1,7 +1,7 @@
 {
   "template_path": "./src/",
-  "exclude_files": ["file1.cpp", "file2.py"],
-  "exclude_folders": ["folder1", "folder2"],
+  "exclude_files": [],
+  "exclude_folders": ["8.待整理"],
   "output_file": "output.md",
   "support_language": {
     ".cpp": "c++",
