@@ -7,13 +7,15 @@ namespace SA {
 
 	// m代表值域是[0,m)
 	void calc_sa(const char* s, int _n, int _m) {
-		n = _n, m = _m;
+		// n = _n, m = _m;
+		n = _n + 1, m = _m;
 		std::fill(cnt, cnt + m, 0);
 		// 计算单个字符的时候的sa数组和rk数组
 		for (int i = 0; i < n; i++) sa[i] = i, cnt[rk[i] = s[i]]++;
 		for (int i = 1; i < m; i++) cnt[i] += cnt[i - 1];
 		for (int i = n - 1; i >= 0; i--) sa[--cnt[rk[i]]] = i;
 
+		// int p = -1;
 		int p = -1;
 		for (int k = 1; k <= n; k <<= 1, m = p + 1, p = -1) {
 			for (int i = n - 1; i >= n - k; i--) tp[++p] = i;
