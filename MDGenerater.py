@@ -39,6 +39,7 @@ def addTemplate(filePath: str, level: int, filename: str) -> None:
 
     if suffix != None:
         title = filename[:-len(suffix)]
+        title = title.lstrip('0123456789.')
         outputFd.write(F'{prefix}{title}\n')
         outputFd.write(f'\n```{fileType}\n')
         outputFd.write(content)
@@ -58,6 +59,7 @@ def Quary(directory : str, level: int, title: str) -> None:
     print(f"Current Directory: {directory}")
     if title != '':
         prefix = '#' * level + ' '
+        title = title.lstrip('0123456789.')
         outputFd.write(prefix + title + '\n')
     items = os.listdir(directory)
 
