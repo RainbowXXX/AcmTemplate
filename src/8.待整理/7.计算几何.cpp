@@ -1,14 +1,16 @@
 // 计算几何(摘自吉如一)
 namespace comp {
 	int sign(double k) {
-		if (k > eps) return 1;
-		if (k < -eps) return -1;
-		return 0;
+		//if (k > eps) return 1;
+		//if (k < -eps) return -1;
+		//return 0;
+
+		if (fabs(k) < eps)
+			return 0;
+		return (k > 0) ? 1 : -1;
 	}
-
 	int cmp(double k1, double k2) { return sign(k1 - k2); }
-
-	bool inmid(double k1, double k2, double k3) { return sign(k1 - k3) * sign(k2 - k3) <= 0; }
+	bool inmid(double k1, double k2, double other) { return sign(k1 - other) * sign(k2 - other) <= 0; }
 
 	struct point {
 		double x, y;
@@ -27,7 +29,7 @@ namespace comp {
 
 		point turn90() { return point{ -y, x }; }
 
-		bool operator<(const point k1) const {
+		bool operator<(const point& k1) const {
 			int a = cmp(x, k1.x);
 			if (a == -1) return 1; else if (a == 1) return 0; else return cmp(y, k1.y) == -1;
 		}
@@ -36,9 +38,10 @@ namespace comp {
 
 		double abs2() const { return x * x + y * y; }
 
-		double dis(point k1) { return ((*this) - k1).abs(); }
+		double dis(const point& k1) { return ((*this) - k1).abs(); }
 
-		point unit() {
+		// 单位化
+		point unit() const {
 			double w = abs();
 			return point{ x / w, y / w };
 		}
@@ -53,15 +56,7 @@ namespace comp {
 			return io;
 		}
 
-		void scan() {
-			double k1, k2;
-			scanf("%lf%lf", &k1, &k2);
-			x = k1;
-			y = k2;
-		}
-
-		void print() { printf("%.11lf %.11lf\n", x, y); }
-
+		// 获取极角
 		double getw() const { return atan2(y, x); }
 
 		point getdel() {
@@ -73,72 +68,12 @@ namespace comp {
 		int getP() const { return sign(y) == 1 || (sign(y) == 0 && sign(x) == -1); }
 	};
 
-	bool inmid(point k1, point k2, point k3) { return inmid(k1.x, k2.x, k3.x) and inmid(k1.y, k2.y, k3.y); }
-
 	double cross(point k1, point k2) { return k1.x * k2.y - k1.y * k2.x; }
-
 	double dot(point k1, point k2) { return k1.x * k2.x + k1.y * k2.y; }
-
-	double rad(point k1, point k2) { return atan2(cross(k1, k2), dot(k1, k2)); }
-
-	bool compareangle(point k1, point k2) {
-		return k1.getP() < k2.getP() || (k1.getP() == k2.getP() && sign(cross(k1, k2)) > 0);
-	}
-
-	point proj(point k1, point k2, point q) {
-		point k = k2 - k1;
-		return k1 + k * (dot(q - k1, k) / k.abs2());
-	}
-
-	point reflect(point k1, point k2, point q) { return proj(k1, k2, q) * 2 - q; }
-
-	int clockwise(point k1, point k2, point k3) {
-		return sign(cross(k2 - k1, k3 - k1));
-	}
-
-	int checkLL(point k1, point k2, point k3, point k4) {
-		return cmp(cross(k3 - k1, k4 - k1), cross(k3 - k2, k4 - k2)) != 0;
-	}
-
-	point getLL(point k1, point k2, point k3, point k4) {
-		double w1 = cross(k1 - k3, k4 - k3), w2 = cross(k4 - k3, k2 - k3);
-		return (k1 * w2 + k2 * w1) / (w1 + w2);
-	}
-
-	int intersect(double l1, double r1, double l2, double r2) {
-		if (l1 > r1) std::swap(l1, r1);
-		if (l2 > r2) std::swap(l2, r2);
-		return cmp(r1, l2) != -1 && cmp(r2, l1) != -1;
-	}
-
-	int checkSS(point k1, point k2, point k3, point k4) {
-		return intersect(k1.x, k2.x, k3.x, k4.x) && intersect(k1.y, k2.y, k3.y, k4.y) &&
-			sign(cross(k3 - k1, k4 - k1)) * sign(cross(k3 - k2, k4 - k2)) <= 0 &&
-			sign(cross(k1 - k3, k2 - k3)) * sign(cross(k1 - k4, k2 - k4)) <= 0;
-	}
-
-	double disSP(point k1, point k2, point q) {
-		point k3 = proj(k1, k2, q);
-		if (inmid(k1, k2, k3)) return q.dis(k3); else return std::min(q.dis(k1), q.dis(k2));
-	}
-
-	double disSS(point k1, point k2, point k3, point k4) {
-		if (checkSS(k1, k2, k3, k4)) return 0;
-		else
-			return std::min(std::min(disSP(k1, k2, k3), disSP(k1, k2, k4)),
-				std::min(disSP(k3, k4, k1), disSP(k3, k4, k2)));
-	}
-
-	int onS(point k1, point k2, point q) { return inmid(k1, k2, q) && sign(cross(k1 - q, k2 - k1)) == 0; }
 
 	struct circle {
 		point o;
 		double r;
-
-		void scan() {
-			o.scan();
-			scanf("%lf", &r);
-		}
 
 		int inside(point k) { return cmp(r, o.dis(k)); }
 	};
@@ -164,6 +99,77 @@ namespace comp {
 			return { p[0] - delta, p[1] - delta };
 		}
 	};
+
+	bool inmid(point k1, point k2, point other) { return inmid(k1.x, k2.x, other.x) and inmid(k1.y, k2.y, other.y); }
+
+	// 两个向量的夹角
+	double rad(point k1, point k2) { return atan2(cross(k1, k2), dot(k1, k2)); }
+
+	// 比较极角
+	bool compareangle(point k1, point k2) {
+		return k1.getP() < k2.getP() || (k1.getP() == k2.getP() && sign(cross(k1, k2)) > 0);
+	}
+
+	// aq在ab上投影的点坐标
+	point proj(point a, point b, point q) {
+		point k = b - a;
+		return a + k * (dot(q - a, k) / k.abs2());
+	}
+
+	// q关于ab的对称坐标
+	point reflect(point a, point b, point q) { return proj(a, b, q) * 2 - q; }
+
+	// oa是否在ob的顺时针方向
+	int clockwise(point o, point a, point b) {
+		return sign(cross(a - o, b - o));
+	}
+
+	// ab是否与cd相交
+	int checkLL(point a, point b, point c, point d) {
+		return cmp(cross(c - a, d - a), cross(c - b, d - b)) != 0;
+	}
+
+	// 计算ab与cd的交点
+	point getLL(point a, point b, point c, point d) {
+		double w1 = cross(a - c, d - c), w2 = cross(d - c, b - c);
+		return (a * w2 + b * w1) / (w1 + w2);
+	}
+
+	// [l1,r1]与[l2,r2]是否相交
+	int intersect(double l1, double r1, double l2, double r2) {
+		if (l1 > r1) std::swap(l1, r1);
+		if (l2 > r2) std::swap(l2, r2);
+		return cmp(r1, l2) != -1 && cmp(r2, l1) != -1;
+	}
+
+	// 线段ab与线段cd是否相交
+	int checkSS(point a, point b, point c, point d) {
+		return intersect(a.x, b.x, c.x, d.x) && intersect(a.y, b.y, c.y, d.y) &&
+			sign(cross(c - a, d - a)) * sign(cross(c - b, d - b)) <= 0 &&
+			sign(cross(a - c, b - c)) * sign(cross(a - d, b - d)) <= 0;
+	}
+
+	// 点p与线段ab的最小距离
+	double disSP(point a, point b, point q) {
+		//point k3 = proj(a, b, q);
+		//if (inmid(a, b, k3)) return q.dis(k3); else return std::min(q.dis(a), q.dis(b));
+		if (a == b) return (q - a).abs();
+		point v1 = b - a, v2 = q - a, v3 = q - b;
+		if (sign(dot(v1, v2)) < 0) return v2.abs();
+		else if (sign(dot(v1, v3)) > 0) return v3.abs();
+		return fabs(cross(v1, v2)) / v1.abs();
+	}
+
+	// 线段ab与线段cd的最小距离
+	double disSS(point a, point b, point c, point d) {
+		if (checkSS(a, b, c, d)) return 0;
+		else
+			return std::min(std::min(disSP(a, b, c), disSP(a, b, d)),
+				std::min(disSP(c, d, a), disSP(c, d, b)));
+	}
+
+	// 判断p是否在线段ab上
+	int onS(point a, point b, point q) { return inmid(a, b, q) && sign(cross(a - q, b - a)) == 0; }
 
 	point getLL(line k1, line k2) { return getLL(k1[0], k1[1], k2[0], k2[1]); }
 
