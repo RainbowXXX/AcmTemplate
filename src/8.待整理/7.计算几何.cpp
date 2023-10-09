@@ -78,6 +78,7 @@ namespace comp {
 		int inside(point k) { return cmp(r, o.dis(k)); }
 	};
 
+	// 有向直线,方向为p[0] -> p[1]
 	struct line {
 
 		point p[2];
@@ -89,8 +90,10 @@ namespace comp {
 
 		point& operator[](int k) { return p[k]; }
 
+		// 判断一个点是否在直线中?
 		int include(point k) { return sign(cross(p[1] - p[0], k - p[0])) > 0; }
 
+		// 取直线方向,方向为p[0] -> p[1]
 		point dir() { return p[1] - p[0]; }
 
 		line push() {
@@ -171,10 +174,13 @@ namespace comp {
 	// 判断p是否在线段ab上
 	int onS(point a, point b, point q) { return inmid(a, b, q) && sign(cross(a - q, b - a)) == 0; }
 
+	// 获取两条直线的交点
 	point getLL(line k1, line k2) { return getLL(k1[0], k1[1], k2[0], k2[1]); }
 
+	// 两条直线是否平行
 	int parallel(line k1, line k2) { return sign(cross(k1.dir(), k2.dir())) == 0; }
 
+	// 判断两条直线的方向是否相似(即方向夹角为锐角)
 	int sameDir(line k1, line k2) { return (parallel(k1, k2) != 0) and (sign(dot(k1.dir(), k2.dir())) == 1); }
 
 	int operator<(line k1, line k2) {
@@ -182,11 +188,13 @@ namespace comp {
 		return compareangle(k1.dir(), k2.dir());
 	}
 
+	// 检查k3是否包含k1和k2的交点
 	int checkpos(line k1, line k2, line k3) { return k3.include(getLL(k1, k2)); }
 
+	// 找到一堆直线的半平面交
 	std::vector<line> getHL(std::vector<line>& L) {
-		sort(L.begin(), L.end());
 		std::deque<line> q;
+		std::sort(L.begin(), L.end());
 		for (int i = 0; i < (int)L.size(); i++) {
 			if (i && sameDir(L[i], L[i - 1])) continue;
 			while (q.size() > 1 && !checkpos(q[q.size() - 2], q[q.size() - 1], L[i])) q.pop_back();
@@ -200,6 +208,7 @@ namespace comp {
 		return ans;
 	}
 
+	// 点集中最近点的距离
 	double closepoint(std::vector<point>& A, int l, int r) {
 		if (r - l <= 5) {
 			double ans = 1e20;
@@ -217,6 +226,7 @@ namespace comp {
 		return ans;
 	}
 
+	// 获取两个圆的位置, 返回值(0:包含,1:内切,2:相交,3:外切,4:相离)
 	int checkposCC(circle k1, circle k2) {
 		if (cmp(k1.r, k2.r) == -1) std::swap(k1, k2);
 		double dis = k1.o.dis(k2.o);
@@ -227,6 +237,7 @@ namespace comp {
 		else if (w2 == 0) return 1; else return 0;
 	}
 
+	// 获取圆和直线的交点
 	std::vector<point> getCL(circle k1, point k2, point k3) {
 		point k = proj(k2, k3, k1.o);
 		double d = k1.r * k1.r - (k - k1.o).abs2();
@@ -235,6 +246,7 @@ namespace comp {
 		return { k - del, k + del };
 	}
 
+	// 获取圆和圆的交点
 	std::vector<point> getCC(circle k1, circle k2) {
 		int pd = checkposCC(k1, k2);
 		if (pd == 0 || pd == 4) return {};
@@ -245,12 +257,14 @@ namespace comp {
 		return { m - del, m + del };
 	}
 
+	// 获取过一点的圆的切线
 	std::vector<point> TangentCP(circle k1, point k2) {
 		double a = (k2 - k1.o).abs(), b = k1.r * k1.r / a, c = sqrt(std::max((double)0.0, k1.r * k1.r - b * b));
 		point k = (k2 - k1.o).unit(), m = k1.o + k * b, del = k.turn90() * c;
 		return { m - del, m + del };
 	}
 
+	// 获取两个圆的外公切线
 	std::vector<line> TangentoutCC(circle k1, circle k2) {
 		int pd = checkposCC(k1, k2);
 		if (pd == 0) return {};
@@ -271,6 +285,7 @@ namespace comp {
 		}
 	}
 
+	// 获取两个圆的内公切线
 	std::vector<line> TangentinCC(circle k1, circle k2) {
 		int pd = checkposCC(k1, k2);
 		if (pd <= 2) return {};
@@ -285,6 +300,7 @@ namespace comp {
 		return ans;
 	}
 
+	// 获取两个圆的公切线(包含外切线和内切线)
 	std::vector<line> TangentCC(circle k1, circle k2) {
 		int flag = 0;
 		if (k1.r < k2.r) std::swap(k1, k2), flag = 1;
@@ -316,6 +332,7 @@ namespace comp {
 		}
 	}
 
+	// 使用三个点构造圆
 	circle getcircle(point k1, point k2, point k3) {
 		double a1 = k2.x - k1.x, b1 = k2.y - k1.y, c1 = (a1 * a1 + b1 * b1) / 2;
 		double a2 = k3.x - k1.x, b2 = k3.y - k1.y, c2 = (a2 * a2 + b2 * b2) / 2;
@@ -324,6 +341,7 @@ namespace comp {
 		return circle{ o, k1.dis(o) };
 	}
 
+	// 获取最小的圆
 	circle getScircle(std::vector<point> A) {
 		std::mt19937 rnd;
 		std::shuffle(A.begin(), A.end(), rnd);
@@ -350,6 +368,7 @@ namespace comp {
 		return ans / 2;
 	}
 
+	// 判断点集是否为凸包
 	int checkconvex(std::vector<point> A) {
 		size_t n = A.size();
 		A.push_back(A[0]);
@@ -358,6 +377,7 @@ namespace comp {
 		return 1;
 	}
 
+	// 判断点q是否在A围成的多边形中?
 	int contain(std::vector<point> A, point q) {
 		int pd = 0;
 		A.push_back(A[0]);
@@ -606,13 +626,13 @@ namespace comp {
 		struct P3 {
 			double x, y, z;
 
-			P3 operator+(P3 k1) { return P3{ x + k1.x, y + k1.y, z + k1.z }; }
+			P3 operator+(const P3& k1) const { return P3{ x + k1.x, y + k1.y, z + k1.z }; }
 
-			P3 operator-(P3 k1) { return P3{ x - k1.x, y - k1.y, z - k1.z }; }
+			P3 operator-(const P3& k1) const { return P3{ x - k1.x, y - k1.y, z - k1.z }; }
 
-			P3 operator*(double k1) { return P3{ x * k1, y * k1, z * k1 }; }
+			P3 operator*(double k1) const { return P3{ x * k1, y * k1, z * k1 }; }
 
-			P3 operator/(double k1) { return P3{ x / k1, y / k1, z / k1 }; }
+			P3 operator/(double k1) const { return P3{ x / k1, y / k1, z / k1 }; }
 
 			double abs2() { return x * x + y * y + z * z; }
 
