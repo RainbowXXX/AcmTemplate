@@ -10,7 +10,8 @@ struct BigIntSimple {
 		sign = 1;
 		v.push_back(0);
 	}
-	BigIntSimple(int n) {
+	template <typename T, typename std::enable_if<std::is_integral_v<T>, int>::type = 0>
+	BigIntSimple(T n) {
 		*this = n;
 	}
 	//判断是否为0
@@ -30,14 +31,10 @@ struct BigIntSimple {
 	}
 	//绝对值大小比较
 	bool absless(const BigIntSimple& b) const {
-		if (v.size() == b.v.size()) {
-			for (size_t i = v.size() - 1; i < v.size(); --i)
-				if (v[i] != b.v[i]) return v[i] < b.v[i];
-			return false;
-		}
-		else {
-			return v.size() < b.v.size();
-		}
+		if (v.size() != b.v.size()) return v.size() < b.v.size();
+		for (size_t i = v.size() - 1; i < v.size(); --i)
+			if (v[i] != b.v[i]) return v[i] < b.v[i];
+		return false;
 	}
 	//字符串输入
 	void set(const char* s) {
@@ -87,6 +84,27 @@ struct BigIntSimple {
 		std::reverse(s.begin(), s.end());
 		return s;
 	}
+	//字符串输入
+	void set(std::string s, int base, const std::vector<int>& inmap) {
+		sign = 1;
+		v.push_back(0);
+		for (auto ch : s) {
+			(*this) = (*this) * base;
+			(*this) = (*this) + inmap[ch];
+		}
+	}
+	//字符串输出
+	std::string to_str(int base, const std::vector<int>& outmap) const {
+		std::string ret;
+		BigIntSimple t = (*this);
+		if (t.iszero()) return "0";
+		while (not t.iszero()) {
+			ret += outmap[(t % base).get(0)];
+			t = t / base;
+		}
+		std::reverse(ret.begin(), ret.end());
+		return ret;
+	}
 
 	bool operator<(const BigIntSimple& b) const {
 		if (sign == b.sign) {
@@ -96,11 +114,20 @@ struct BigIntSimple {
 			return sign < 0;
 		}
 	}
-
-	BigIntSimple& operator=(int n) {
+	template <typename T, typename std::enable_if<std::is_signed_v<T>, int>::type = 0>
+	BigIntSimple& operator=(T n) {
 		v.clear();
 		sign = n >= 0 ? 1 : -1;
 		for (n = abs(n); n; n /= BIGINT_BASE)
+			v.push_back(n % BIGINT_BASE);
+		if (v.empty()) v.push_back(0);
+		return *this;
+	}
+	template <typename T, typename std::enable_if<std::is_unsigned_v<T>, int>::type = 0>
+	BigIntSimple& operator=(T n) {
+		v.clear();
+		sign = 1;
+		for (; n; n /= BIGINT_BASE)
 			v.push_back(n % BIGINT_BASE);
 		if (v.empty()) v.push_back(0);
 		return *this;
@@ -287,3 +314,4 @@ BigIntSimple gcd(BigIntSimple a, BigIntSimple b) {
 	if (b.iszero())return a;
 	return gcd(b, a % b);
 }
+using bigint = BigIntSimple;
