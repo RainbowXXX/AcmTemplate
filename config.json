@@ -1,12 +1,22 @@
 {
-  "template_path": "./src/",
-  "exclude_files": [],
-  "exclude_folders": ["8.待整理"],
-  "output_file": "output.md",
-  "support_language": {
-    ".cpp": "c++",
-    ".py": "python",
-    ".conf": ""
-  }
+    "template_path": "./src/",
+    "exclude_files": [
+        "markdown.md"
+    ],
+    "exclude_folders": [
+        "8.待整理"
+    ],
+    "output_file": "output.md",
+    "comment_marking_end": "</genHead>",
+    "comment_marking_begin": "<genHead>",
+    "support_text_format": [
+        ".txt",
+        ".md"
+    ],
+    "support_language": {
+        ".cpp": "c++",
+        ".py": "python",
+        ".conf": ""
+    },
+    "ignore_empty_dir": true
 }
-  
