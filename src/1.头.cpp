@@ -28,10 +28,6 @@
 #include <functional>
 #include <unordered_map>
 
-/*<ignore>
- * test
- </ignore>*/
-
 using ll = long long;
 using ull = unsigned long long;
 const double e = exp(1.0);
