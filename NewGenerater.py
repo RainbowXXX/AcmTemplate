@@ -5,15 +5,17 @@ import logging
 Log_level = logging.DEBUG
 enmptyConf = '''
 {
-  "template_path": "",
-  "exclude_files": [],
-  "exclude_folders": [],
-  "output_file": "",
-  "ignore_empty_dir": true,
-  "comment_marking_end": "",
-  "comment_marking_begin": "",
-  "support_text_format": [],
-  "support_language": {}
+    "template_path": "",
+    "exclude_files": [],
+    "exclude_folders": [],
+    "output_file": "",
+    "ignore_empty_dir": true,
+    "comment_ignore_end": "</ignore>",
+    "comment_ignore_begin": "<ignore>",
+    "comment_marking_end": "</genHead>",
+    "comment_marking_begin": "<genHead>",
+    "support_text_format": [],
+    "support_language": {}
 }
 '''
 
@@ -29,14 +31,25 @@ def AnalysisCode(fileContent :str, codeType :str, filePath :str, profile :json):
     # f == 0代表正文
     # f != 0代表文档注释
     f = 0
+    f1 = 0
     fail = 0
     head = ''
     content = ''
     fileLines = fileContent.split('\n')
+    comment_ignore_end = profile['comment_ignore_end']
+    comment_ignore_begin = profile['comment_ignore_begin']
     comment_marking_end = profile['comment_marking_end']
     comment_marking_begin = profile['comment_marking_begin']
     for line in fileLines:
-        if comment_marking_begin in line:
+        if comment_ignore_begin in line:
+            f1 += 1
+            if f1 < 0 or f1 > 1:
+                fail = 1
+        elif comment_ignore_end in line:
+            f1 -= 1
+            if f1 < 0 or f1 > 1:
+                fail = 1
+        elif comment_marking_begin in line:
             f += 1
             if f < 0 or f > 1:
                 fail = 1
@@ -45,10 +58,11 @@ def AnalysisCode(fileContent :str, codeType :str, filePath :str, profile :json):
             if f < 0 or f > 1:
                 fail = 1
         else:
-            if f == 0:
-                content = content + line + '\n'
-            else:
-                head = head + line + '\n'
+            if f1 == 0:
+                if f == 0:
+                    content = content + line + '\n'
+                else:
+                    head = head + line + '\n'
     
     if f != 0 or fail:
         logging.warning(f'Unclosed parentheses or error usage comment in {filePath}')

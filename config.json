@@ -7,6 +7,8 @@
         "8.待整理"
     ],
     "output_file": "output.md",
+    "comment_ignore_end": "</ignore>",
+    "comment_ignore_begin": "<ignore>",
     "comment_marking_end": "</genHead>",
     "comment_marking_begin": "<genHead>",
     "support_text_format": [
