@@ -28,8 +28,9 @@ def srcCmp(name : str) -> int:
     return ret
 
 def AnalysisCode(fileContent :str, codeType :str, filePath :str, profile :json):
-    # f == 0代表正文
+    # f == 0 and f1 == 0代表正文
     # f != 0代表文档注释
+    # f1 != 0代表需要在markdown生成的时候需要被忽视的信息(比如不必要的题目信息等)
     f = 0
     f1 = 0
     fail = 0
