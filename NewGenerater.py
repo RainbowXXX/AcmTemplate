@@ -1,5 +1,6 @@
 import os
 import io
+import sys
 import json
 import logging
 Log_level = logging.DEBUG
@@ -98,7 +99,7 @@ def AddTemplateToOutputFile(level :int, filePath :str, fileName :str, outputFd :
             curSuffix = suffix
             break
     fileName = fileName[:-len(curSuffix)]
-    fileName = fileName.lstrip('0123456789.')
+    # fileName = fileName.lstrip('0123456789.')
     if fileType == None:
         logging.warn(f'Mate file name to suffix failed.\nFile name: {fileName}\nSupport lang: {supportLans}\n')
         return
@@ -164,12 +165,14 @@ def QuarySrcFile(level :int, path :str, profile :json, outputFd :io.TextIOWrappe
         elif os.path.isdir(item_path):
             if not item in profile['exclude_folders']:
                 logging.debug(f'Path {path} is dir')
-                AddOutlineToOutputFile(level=level+1, outline=item.lstrip('0123456789.'), outputFd=outputFd)
+                AddOutlineToOutputFile(level=level+1, outline=item
+                                    #    .lstrip('0123456789.')
+                                       , outputFd=outputFd)
                 QuarySrcFile(level=level+1, path=item_path, profile=profile, outputFd=outputFd)
     pass
 
-def Generate(srcPath :str, profile :json):
-    with open(profile['output_file'], 'w') as f:
+def Generate(srcPath :str, outputFile :str, profile :json):
+    with open(outputFile, 'w') as f:
         QuarySrcFile(level=0,path=srcPath,profile=profile,outputFd=f)
     pass
 
@@ -177,7 +180,19 @@ if __name__ == '__main__':
     # 配置日志记录
     # logging.basicConfig(filename='myapp.log', level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
-    conf_path = './config.json'
+    arguments = sys.argv
+    if '-f' in arguments:
+        for i in range(len(arguments)):
+            if arguments[i] == '-f':
+                conf_path = arguments[i+1]
+    else:
+        conf_path = './config.json'
+
+    if '-o' in arguments:
+        for i in range(len(arguments)):
+            if arguments[i] == '-o':
+                outputFile = arguments[i+1]
+
     conf_path = os.path.abspath(conf_path)
     if os.path.exists(conf_path):
         logging.info(f'Config file {conf_path} is finded.')
@@ -212,5 +227,8 @@ if __name__ == '__main__':
             json.dump(profile,f,indent=4)
         pass
 
-    Generate(srcPath=profile['template_path'],profile=profile)
+    if outputFile == '':
+        outputFile = profile['output_file']
+
+    Generate(srcPath=profile['template_path'],outputFile=outputFile,profile=profile)
     pass
