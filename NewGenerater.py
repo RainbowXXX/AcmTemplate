@@ -181,6 +181,7 @@ if __name__ == '__main__':
     # logging.basicConfig(filename='myapp.log', level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
     logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
     arguments = sys.argv
+    outputFile = None
     if '-f' in arguments:
         for i in range(len(arguments)):
             if arguments[i] == '-f':
@@ -227,7 +228,7 @@ if __name__ == '__main__':
             json.dump(profile,f,indent=4)
         pass
 
-    if outputFile == '':
+    if outputFile == None:
         outputFile = profile['output_file']
 
     Generate(srcPath=profile['template_path'],outputFile=outputFile,profile=profile)

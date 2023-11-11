@@ -4,3 +4,4 @@
 /others
 *.zip
 /config.json
+*test*
