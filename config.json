@@ -17,6 +17,7 @@
     ],
     "support_language": {
         ".cpp": "c++",
+        ".h": "c++",
         ".py": "python",
         ".conf": ""
     },

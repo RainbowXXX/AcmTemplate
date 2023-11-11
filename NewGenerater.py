@@ -3,13 +3,13 @@ import io
 import sys
 import json
 import logging
+import argparse
 Log_level = logging.DEBUG
 enmptyConf = '''
 {
     "template_path": "",
     "exclude_files": [],
     "exclude_folders": [],
-    "output_file": "",
     "ignore_empty_dir": true,
     "comment_ignore_end": "</ignore>",
     "comment_ignore_begin": "<ignore>",
@@ -133,6 +133,7 @@ def AddTextToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.T
         logging.error(f'Fail to read file {filePath}, reason: '+e)
         fileContent = None
     if fileContent != None:
+        fileContent = '``` \n' + fileContent + '\n```'
         AddOutlineToOutputFile(level=level, outline=fileName, outputFd=outputFd)
         WriteContent(content=fileContent, outputFd=outputFd)
     pass
@@ -153,18 +154,18 @@ def QuarySrcFile(level :int, path :str, profile :json, outputFd :io.TextIOWrappe
         item_path = os.path.join(path, item)
         # 判断是文件还是文件夹
         if os.path.isfile(item_path):
-            logging.debug(f'Path {path} is file')
+            logging.debug(f'Path {item_path} is file')
             if not item in profile['exclude_files']:
                 if item.endswith(supportCodeSuffix):
-                    logging.debug(f'Path {path} considered to be code')
+                    logging.debug(f'Path {item_path} considered to be code')
                     AddTemplateToOutputFile(filePath= item_path, level= level+1, fileName= item, profile=profile, outputFd=outputFd)
                 elif item.endswith(supportTextSuffix):
-                    logging.debug(f'Path {path} considered to be text')
+                    logging.debug(f'Path {item_path} considered to be text')
                     AddTextToOutputFile(filePath= item_path, level= level+1, fileName= item, outputFd=outputFd)
 
         elif os.path.isdir(item_path):
             if not item in profile['exclude_folders']:
-                logging.debug(f'Path {path} is dir')
+                logging.debug(f'Path {item_path} is dir')
                 AddOutlineToOutputFile(level=level+1, outline=item
                                     #    .lstrip('0123456789.')
                                        , outputFd=outputFd)
@@ -176,60 +177,73 @@ def Generate(srcPath :str, outputFile :str, profile :json):
         QuarySrcFile(level=0,path=srcPath,profile=profile,outputFd=f)
     pass
 
+def fixProFile(profileStr: str) -> tuple[int,dict]:
+    try:
+        profile :dict = json.loads(profileStr)
+    except BaseException as e:
+        logging.error(f'Fail to load profile to json {e}. Create a new one.')
+        profile :dict = {}
+
+    try:
+        states = False
+        for key, val in (json.loads(enmptyConf)).items():
+            if not key in profile.keys():
+                profile[key] = val
+                states = True
+    except BaseException as e:
+        logging.fatal(f'Fail to write to new config {e}.')
+        raise
+    
+    return (states, profile)
+
+def readProFile(profilePath :str) -> dict:
+    if not os.path.exists(profilePath):
+        try:
+            with open(profilePath,'w') as file:
+                json.dump({},file,indent=4)
+        except BaseException as e:
+            logging.fatal(f'Fail to crate new profile on{profilePath}, {e}')
+            raise
+    
+    try:
+        content = ''
+        with open(profilePath,'r') as file:
+            content = file.read()
+    except BaseException as e:
+        logging.fatal(f'Fail to read profile: {e}.')
+        raise
+        
+    states, profile = fixProFile(content)
+    if states:
+        try:
+            with open(profilePath,'w') as file:
+                json.dump(profile,file,indent=4)
+        except BaseException as e:
+            logging.error(f'Fail to fix profile.{e}')
+    return profile
+
 if __name__ == '__main__':
     # 配置日志记录
     # logging.basicConfig(filename='myapp.log', level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
-    logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
-    arguments = sys.argv
-    outputFile = None
-    if '-f' in arguments:
-        for i in range(len(arguments)):
-            if arguments[i] == '-f':
-                conf_path = arguments[i+1]
-    else:
-        conf_path = './config.json'
+    # logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+    parser = argparse.ArgumentParser(description='一个简单的转markdown格式工具')
 
-    if '-o' in arguments:
-        for i in range(len(arguments)):
-            if arguments[i] == '-o':
-                outputFile = arguments[i+1]
+    parser.add_argument('-f','--file',help='配置文件路径,默认为当前目录下的config.json',default='./config.json')
+    parser.add_argument('-o','--output',help='输出文件,默认为当前目录下的output.md',default='./output.md')
+    parser.add_argument('-v', '--verbose', action='store_true', help='启用详细输出')
+
+    # 解析命令行参数
+    args = parser.parse_args()
+    
+    conf_path = args.file
+    outputFile = args.output
+    if not args.verbose:
+        logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+    else:
+        logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [%(levelname)s] %(message)s')
 
     conf_path = os.path.abspath(conf_path)
-    if os.path.exists(conf_path):
-        logging.info(f'Config file {conf_path} is finded.')
-    else:
-        logging.warning(f'Config file {conf_path} is not finded.')
-        flag = input(f'Do you want to create config file {conf_path}?(Y/n)')
-        if flag == 'n':
-            logging.error(f'Fail to read {conf_path},exited')
-            exit(-1)
-        else:
-            with open(conf_path, 'w') as conf:
-                conf.write(enmptyConf)
-            logging.info(f'Please complete the config file {conf_path}')
-            exit(0)
-    profile = None
-    try:
-        with open(conf_path, 'r') as config:
-            profile = config.read()
-    except BaseException as e:
-        logging.error('Fail to read file:'+e)
-        pass
-    logging.debug(f'Read profile:\n{profile}')
-    profile : dict = json.loads(profile)
-    fullFlag = True
-    for key, val in (json.loads(enmptyConf)).items():
-        if not key in profile.keys():
-            profile[key] = val
-            fullFlag = False
-    
-    if not fullFlag:
-        with open(conf_path,'w',encoding='gbk') as f:
-            json.dump(profile,f,indent=4)
-        pass
-
-    if outputFile == None:
-        outputFile = profile['output_file']
+    profile : dict = readProFile(conf_path)
 
     Generate(srcPath=profile['template_path'],outputFile=outputFile,profile=profile)
     pass
