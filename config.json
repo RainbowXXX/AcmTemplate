@@ -4,7 +4,7 @@
         "markdown.md"
     ],
     "exclude_folders": [
-        "9.待整理"
+        "Todo"
     ],
     "output_file": "output.md",
     "comment_ignore_end": "</ignore>",
