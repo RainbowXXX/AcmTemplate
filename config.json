@@ -4,7 +4,8 @@
         "markdown.md"
     ],
     "exclude_folders": [
-        "Todo"
+        "Todo",
+        "8.others"
     ],
     "output_file": "output.md",
     "comment_ignore_end": "</ignore>",
