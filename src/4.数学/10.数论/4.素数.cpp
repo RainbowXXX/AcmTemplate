@@ -101,6 +101,26 @@ namespace prime {
 		return ret;
 	}
 
+	inline std::vector<ll> primeFac(ll n) {
+		ll k = 0, p = 0;
+		std::vector<ll> ret;
+		std::queue<ll> qu; qu.emplace(n);
+		while (not qu.empty()) {
+			k = qu.front(), p = k; qu.pop();
+			if (k < 2) continue;
+			if (millerRabin(k)) {
+				ret.emplace_back(k);
+				continue;
+			}
+			while (p >= k) p = pollardRho(k, rand() % (k - 1) + 1);
+			while ((k % p) == 0) k /= p;
+			qu.emplace(k), qu.emplace(p);
+		}
+		std::sort(ret.begin(), ret.end());
+		ret.erase(std::unique(ret.begin(), ret.end()), ret.end());
+		return ret;
+	}
+
 	constexpr ll calcPhi(ll n) {
 		ll result = n;
 		for (ll i = 2; i * i <= n; i++) {

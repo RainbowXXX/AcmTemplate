@@ -2,7 +2,7 @@
 constexpr ll qmul(ll p1, ll p2, ll mod) {
 	ensure(mod < 500000000000000000LL);
 	p1 %= mod; p2 %= mod;
-	ll ret = (p1 * p2 - (ll)((long double)p1 * p2 / mod) * mod) % mod;
+	ll ret = (p1 * p2 - (ll)((point_t)p1 * p2 / mod) * mod) % mod;
 	return (ret + ((ret >> 63) & mod));
 }
 constexpr ll mul(ll x, ll n, ll mod) {
@@ -78,3 +78,8 @@ constexpr ull qpow_safe(ull x, ull n, ull mod) {
 	}
 	return ret;
 }
+
+template <typename T, typename std::enable_if<std::is_unsigned_v<T>, int>::type = 0>
+constexpr T getSgn(T val) { return 0; }
+template <typename T, typename std::enable_if<std::is_signed_v<T>, int>::type = 0>
+constexpr T getSgn(T val) { return val >> (((sizeof(T)) << 2) - 1); }
