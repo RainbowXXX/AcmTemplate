@@ -1,0 +1,8 @@
+区间博弈
+题源:ABC297G
+有n堆 第i堆有a[i]个石头
+两玩家轮流操作 每次挑选一堆 从中拿走[l,r]个石头
+第一个无法操作的玩家输
+F(ll x,ll l,ll r){return (x%(l+r))/l;}
+sg=0 FOR(i,1,n) sg^=F(a[i],l,r)
+if(sg!=0) 先手胜 else 后手胜

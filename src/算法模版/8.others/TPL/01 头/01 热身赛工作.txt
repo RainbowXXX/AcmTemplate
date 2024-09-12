@@ -1,0 +1,17 @@
+热身赛:
+测试IDE( )
+测试代码自动保存( )
+测试Checker检查PE( )
+测试CE,RE,PE是否算WA( )
+测试ONLINE_JUDGE等宏( )
+测试pb_ds库( )
+测试int128( )
+测试auto [u,v]( )
+测试using,cerr,assert( )
+
+Dev:
+注意11没有auto&[u,v]和gcd
+
+VScode:
+测试code runner加宏 编译版本std17 O2 "-std=c++17","-DTEXT_IO","-DLOCAL"
+熟悉快捷键:自动整理 运行 停止 切换 新建 下一组

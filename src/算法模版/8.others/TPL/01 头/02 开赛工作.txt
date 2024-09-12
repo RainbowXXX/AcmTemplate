@@ -1,0 +1,16 @@
+Dev:
+01 中文
+工具->环境选项-→语言(简体中文)
+02 C++11
+工具->编译选项->代码生成/优化->代码生成->语言标准(选择GUN C++17)
+03 宏定义
+工具->编译选项->编译时加入命令(打钩 写入-DLOCAL -DTEXT_IO)
+04 整理格式
+AStyle->格式化选项(选择Allman 选择tabs 全打钩)
+
+VScode:
+setting accept suggest 取消回车补全
+Ter打开
+Coderunner executorMap settings.json -std=c++17 -DLOCAL -DTEXT_IO -O2
+settings accept suggest 取消回车补全
+记得保存后编译运行 结束后记得关闭

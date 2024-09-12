@@ -1,0 +1,6 @@
+[](ll a,ll b)->ll{return a+b;}
+auto Add = [](ll a,ll b)->ll{return a+b;};
+[&a,b]:封闭范围内引用调用a，值调用b
+[&]:封闭范围内全部引用调用 [=]:封闭范围内全部值调用
+[&,b]:封闭范围内除b值调用,其他全部引用调用 [=,&a]:封闭范围内除a引用调用，其他全部值调用
+sort(ve.begin(),ve.end(),[](const ll& lh,const ll& rh){return lh>rh;});

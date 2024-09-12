@@ -1,0 +1,5 @@
+#include <ext/pb_ds/assoc_container.hpp>
+#include <ext/pb_ds/hash_policy.hpp>
+// __gnu_pbds::cc_hash_table<Key, Mapped>
+// __gnu_pbds::gp_hash_table<Key, Mapped>
+// 支持find和operator[]

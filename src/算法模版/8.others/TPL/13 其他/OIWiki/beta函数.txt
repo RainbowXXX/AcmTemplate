@@ -1,0 +1,5 @@
+beta(x,y) = Int[0,1]( x^(a-1) * (1-x)^(b-1) )dx
+beta(a,b) = (a-1)! * (b-1)! / (a+b-1)! , (a,b /in N)
+beta(p,q) = Gamma(p) * Gamma(q) / Gamma(p+q)
+Gamma(n+1) = n!
+Gamma(s) = Int[0,inf]( x^(s-1)*e^(-x))dx

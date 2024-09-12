@@ -1,0 +1,6 @@
+ctrl s 保存 ctrl alt n 运行 ctrl alt m 停止
+ctrl shift I 整理
+ctrl 1/2/3 切打开程序
+ctrl x/c/v 剪切/复制/粘贴行
+ctrl +/- 大小字体
+ctrl tab 切应用

@@ -1,0 +1,31 @@
+setprecision 不带小数点 有效位数 无后缀0 
+cout<<setprecision(1)<<
+fixed 搭配setpr使用 小数点位数 有后缀0 
+cout.setf(ios::fixed);
+showpoint 搭配setpr使用 带小数点 有效位数 有后缀0 
+cout.setf(ios::showpoint);
+
+cout<<"十进制："<<dec<<x<<endl
+	<<"八进制："<<oct<<x<<endl
+	<<"十六进制："<<hex<<x<<endl;
+
+//总宽度为10 默认右对齐
+cout.width（10）
+//不够的用'*'填充 不填默认空格
+cout.fill('*')
+//设置宽度为10 默认右对齐
+cout<<setw(10)<<ans<<edl;
+
+//左右对齐
+cout<<setiosflags(ios_base::left)
+cout<<setiosflags(ios_base::right)
+
+//<<setiosflags(ios_base::fixed)//以定点格式显示浮点数据 
+//<<setiosflags(ios_base::scientific)//以科学格式显示浮点数
+
+//忽略前导空格
+setiosflags(ios::skipws)
+//数据以16进制形式输出时字母以大写表示
+setiosflags(ios::uppercase)
+//数据以16进制形式输出时字母以小写表示
+setiosflags(ios::lowercase)
