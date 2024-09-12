@@ -20,7 +20,7 @@ enmptyConf = '''
 }
 '''
 
-def srcCmp(name : str) -> int:
+def srcCmp(name :str) -> int:
     ret = 0
     for i in range(0,len(name)):
         if not name[i].isdigit():
@@ -78,6 +78,12 @@ def AnalysisCode(fileContent :str, codeType :str, filePath :str, profile :json):
     return heads + codes
     pass
 
+def AnalysisText(fileContent :str):
+    context = fileContent.split('\n')
+    res = ['>'+line+'\n' for line in context]
+    return ''.join(res)
+    pass
+
 def WriteContent(content :str, outputFd :io.TextIOWrapper):
     outputFd.write(content)
     outputFd.write('\n')
@@ -133,7 +139,8 @@ def AddTextToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.T
         logging.error(f'Fail to read file {filePath}, reason: '+e)
         fileContent = None
     if fileContent != None:
-        fileContent = '``` \n' + fileContent + '\n```'
+        fileContent = AnalysisText(fileContent)
+        # fileContent = '--- \n' + fileContent + '\n\n---'
         AddOutlineToOutputFile(level=level, outline=fileName, outputFd=outputFd)
         WriteContent(content=fileContent, outputFd=outputFd)
     pass

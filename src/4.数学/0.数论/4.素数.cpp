@@ -1,4 +1,69 @@
 namespace prime {
+	constexpr ll calcPhi(ll n) {
+		ll result = n;
+		for (ll i = 2; i * i <= n; i++) {
+			if (n % i == 0) {
+				while (n % i == 0) n /= i;
+				result -= result / i;
+			}
+		}
+		if (n > 1) result -= result / n;
+		return result;
+	}
+	template <ll n> constexpr ll getPhi = calcPhi(n);
+
+	namespace internal {
+		constexpr ll rho(ll x, ll c, ll n) {
+			ll ret = qmul_safe(x, x, n) + c - n;
+			return ret + ((ret >> 63) & n);
+		}
+		constexpr ll rho2(ll x, ll c, ll n) {
+			return rho(rho(x, c, n), c, n);
+		}
+
+		constexpr ll pollardRho(ll n, ll c) {
+			ll start = 0, cur = 0, f = 0;
+			cur = rho(cur, c, n), f = rho2(f, c, n);
+			for (int chunk = 1; cur != f; chunk <<= 1) {
+				ll val = 1, fac = 0, t = 0;
+				for (int stp = 1; stp <= chunk; stp++) {
+					cur = rho(cur, c, n), f = rho2(f, c, n);
+					t = (cur - start) >> 63;
+					val = qmul_safe(val, (cur - start + t) ^ t, n);
+					if ((stp & 0x7f) == 0) {
+						fac = std::gcd(val, n);
+						if (fac > 1) return fac;
+					}
+				}
+				fac = std::gcd(val, n);
+				if (fac > 1) return fac;
+				start = cur;
+			}
+			return n;
+		}
+
+		ll eqpows(int mod) { return 1; }
+		template <class T, class ...Args>
+		ll eqpows(int mod, T base, Args... args) {
+			static ll ret, tem, f;
+			ll phi = calcPhi(mod), next;
+			next = eqpows(phi, args...);
+			if (std::gcd(base, mod) == 1)
+				next = next % phi;
+			else if (next >= phi)
+				next = next % phi + phi;
+			ret = 1; tem = base; f = 0;
+			while (next) {
+				if (next & 0x1) {
+					ret = ret * tem;
+					if (ret >= mod) f = 1, ret %= mod;
+				}
+				tem = qmul_safe(tem, tem, mod); next >>= 1;
+			}
+			if (f) ret += mod;
+			return ret;
+		}
+	}
 	//拓展到2^63
 	constexpr bool millerRabin(ll n) {
 		if (n <= 1) return false;
@@ -27,6 +92,7 @@ namespace prime {
 		return true;
 	}
 	template <ll n> constexpr bool is_prime = primeTest(n);
+
 	// 求原根,m必须是素数
 	constexpr int primitive_root_constexpr(int m) {
 		if (m == 2) return 1;
@@ -55,35 +121,6 @@ namespace prime {
 	}
 	template <ll m, typename std::enable_if<primeTest(m), int>::type = 0> constexpr int primitive_root = primitive_root_constexpr(m);
 
-	constexpr ll rho(ll x, ll c, ll n) {
-		ll ret = qmul_safe(x, x, n) + c - n;
-		return ret + ((ret >> 63) & n);
-	}
-	constexpr ll rho2(ll x, ll c, ll n) {
-		return rho(rho(x, c, n), c, n);
-	}
-
-	constexpr ll pollardRho(ll n, ll c) {
-		ll start = 0, cur = 0, f = 0;
-		cur = rho(cur, c, n), f = rho2(f, c, n);
-		for (int chunk = 1; cur != f; chunk <<= 1) {
-			ll val = 1, fac = 0, t = 0;
-			for (int stp = 1; stp <= chunk; stp++) {
-				cur = rho(cur, c, n), f = rho2(f, c, n);
-				t = (cur - start) >> 63;
-				val = qmul_safe(val, (cur - start + t) ^ t, n);
-				if ((stp & 0x7f) == 0) {
-					fac = std::gcd(val, n);
-					if (fac > 1) return fac;
-				}
-			}
-			fac = std::gcd(val, n);
-			if (fac > 1) return fac;
-			start = cur;
-		}
-		return n;
-	}
-
 	inline ll maxFac(ll n) {
 		ll k = 0, p = 0, ret = 0;
 		std::queue<ll> qu; qu.emplace(n);
@@ -94,7 +131,7 @@ namespace prime {
 				ret = ret > k ? ret : k;
 				continue;
 			}
-			while (p >= k) p = pollardRho(k, rand() % (k - 1) + 1);
+			while (p >= k) p = internal::pollardRho(k, rand() % (k - 1) + 1);
 			while ((k % p) == 0) k /= p;
 			qu.emplace(k), qu.emplace(p);
 		}
@@ -112,7 +149,7 @@ namespace prime {
 				ret.emplace_back(k);
 				continue;
 			}
-			while (p >= k) p = pollardRho(k, rand() % (k - 1) + 1);
+			while (p >= k) p = internal::pollardRho(k, rand() % (k - 1) + 1);
 			while ((k % p) == 0) k /= p;
 			qu.emplace(k), qu.emplace(p);
 		}
@@ -120,19 +157,6 @@ namespace prime {
 		ret.erase(std::unique(ret.begin(), ret.end()), ret.end());
 		return ret;
 	}
-
-	constexpr ll calcPhi(ll n) {
-		ll result = n;
-		for (ll i = 2; i * i <= n; i++) {
-			if (n % i == 0) {
-				while (n % i == 0) n /= i;
-				result -= result / i;
-			}
-		}
-		if (n > 1) result -= result / n;
-		return result;
-	}
-	template <ll n> constexpr ll getPhi = calcPhi(n);
 
 	constexpr ull eqpow(ull x, ull n, int mod, int phi = -1) {
 		if (phi == -1)
@@ -144,29 +168,16 @@ namespace prime {
 		return qpow(x, n, mod);
 	}
 
-	ll eqpows(int mod) { return 1; }
-	template <class T, class ...Args>
-	ll eqpows(int mod, T base, Args... args) {
-		static ll ret, tem, f;
-		ll phi = calcPhi(mod), next;
-		next = eqpows(phi, args...);
-		if (std::gcd(base, mod) == 1)
-			next = next % phi;
-		else if (next >= phi)
-			next = next % phi + phi;
-		ret = 1; tem = base; f = 0;
-		while (next) {
-			if (next & 0x1) {
-				ret = ret * tem;
-				if (ret >= mod) f = 1, ret %= mod;
-			}
-			tem = qmul_safe(tem, tem, mod); next >>= 1;
-		}
-		if (f) ret += mod;
+	ll Mod(const std::string& n, ll _mod = mod) {
+		ll ret = 0;
+		for (auto i : n)
+			ret = (ret * 10 + ((ll)i - '0')) % _mod;
 		return ret;
 	}
+
 	template <class T, class ...Args>
-	ll qpow_big(int mod, T base, Args... args) {
-		return eqpows(mod, base, args...) % mod;
+	ll eqpows(int mod, T base, Args... args) {
+		return internal::eqpows(mod, base, args...) % mod;
 	}
+
 }

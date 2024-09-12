@@ -1,4 +1,6 @@
-//$~~~sum_{i=0}^{n-1} \lfloor\frac{ai + b}{m} \rfloor (mod 2^{64})$
+/*<genHead>
+$\sum_{i=0}^{n-1} \lfloor\frac{ai + b}{m} \rfloor (mod 2^{64})$
+</genHead>*/
 ull floor_sum_unsigned(ull n, ull m, ull a, ull b) {
 	ull ans = 0;
 	while (true) {
@@ -28,3 +30,10 @@ ll floor_sum(ll n, ll m, ll a, ll b) {
 	}
 	return ans + floor_sum_unsigned(n, m, a, b);
 }
+
+// {x^1} 前n项和
+ll Skn(ll n) { return n * (n + 1) / 2; }
+// {x^2} 前n项和
+ll Sk2n(ll n) { return n * (n + 1) * (n * 2 + 1) / 6; }
+// {x^3} 前n项和
+ll Sk3n(ll n) { return n * n * (n + 1) * (n + 1) / 4; }

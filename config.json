@@ -1,9 +1,11 @@
 {
     "template_path": "./src/",
     "exclude_files": [
-        "markdown.md"
+        "markdown.md",
+        "1.头.cpp"
     ],
     "exclude_folders": [
+        ".git",
         "Todo",
         "8.others"
     ],

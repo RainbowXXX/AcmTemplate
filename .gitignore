@@ -4,3 +4,4 @@
 *.zip
 /config.json
 *test*
+/*.md
