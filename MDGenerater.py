@@ -121,6 +121,8 @@ def Work(configs : dict) -> None:
     pass
 
 if __name__ == '__main__':
+    print('WARNING: This software has been deprecated and is no longer maintained.')
+    print('Please consider using NewGenerater.py on https://github.com/RainbowXXX/AcmTemplate/blob/master/NewGenerater.py instead.')
     retry = 10; state = False; configs = {}
     while (not state) and (retry != 0):
         (state, configs) = init('./config.json')
