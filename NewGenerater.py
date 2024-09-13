@@ -30,6 +30,8 @@ enmptyConf = '''
 }
 '''
 
+Contents = ''
+
 def srcCmp(name :str) -> int:
     ret = 0
     for i in range(0,len(name)):
@@ -100,8 +102,10 @@ def WriteContent(content :str, outputFd :io.TextIOWrapper):
     pass
 
 def AddOutlineToOutputFile(level :int, outline :str, outputFd :io.TextIOWrapper):
+    global Contents
     prefix = '#' * level + ' '
     outputFd.write(F'{prefix}{outline}\n')
+    Contents += f'[{outline}](#{outline})\n'
     pass
 
 def AddTemplateToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper, profile :json, pre_fix: str, item_type: str):
@@ -240,11 +244,20 @@ def QuarySrcFile(level :int, path :str, profile :json, outputFd :io.TextIOWrappe
     return 1
     pass
 
-def Generate(srcPath :str, outputFile :str, profile :json):
-    with open(outputFile, 'w', encoding=file_encoding, errors=error_handle) as f:
+def Generate(srcPath :str, outputFile :str, tmpputFile :str, profile :json):
+    global Contents
+    file_content = ''
+    with open(tmpputFile, 'w+', encoding=file_encoding, errors=error_handle) as f:
         if(profile['enable_pagination']):
             f.write(new_page_spliter)
         QuarySrcFile(level=0,path=srcPath,profile=profile,outputFd=f)
+
+        f.seek(0); file_content = f.read().replace(new_page_spliter, '')
+    
+    with open(outputFile, 'w+', encoding=file_encoding, errors=error_handle) as f:
+        f.write(Contents+'\n')
+        f.write(file_content)
+
     pass
 
 def fixProFile(profileStr: str) -> tuple[int,dict]:
@@ -300,6 +313,7 @@ if __name__ == '__main__':
 
     parser.add_argument('-f','--file',help='配置文件路径,默认为当前目录下的config.json',default='./config.json')
     parser.add_argument('-o','--output',help='输出文件,默认为当前目录下的output.md',default='./output.md')
+    parser.add_argument('-t','--tmpfile',help='用于生成pdf的临时输出文件,默认为当前目录下的output_tmp.md',default='./output_tmp.md')
     parser.add_argument('-v', '--verbose', action='store_true', help='启用详细输出')
 
     # 解析命令行参数
@@ -307,6 +321,7 @@ if __name__ == '__main__':
     
     conf_path = args.file
     outputFile = args.output
+    tmpputFile = args.tmpfile
     if not args.verbose:
         logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
     else:
@@ -315,5 +330,5 @@ if __name__ == '__main__':
     conf_path = os.path.abspath(conf_path)
     profile : dict = readProFile(conf_path)
 
-    Generate(srcPath=profile['template_path'],outputFile=outputFile,profile=profile)
+    Generate(srcPath=profile['template_path'],outputFile=outputFile,profile=profile,tmpputFile=tmpputFile)
     pass
