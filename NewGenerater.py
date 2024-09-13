@@ -1,16 +1,26 @@
 import os
 import io
+import re
 import sys
 import json
 import logging
 import argparse
 Log_level = logging.DEBUG
+
+error_handle = 'ignore'
+file_encoding = 'utf-8'
+new_page_spliter = '\\newpage\n'
 enmptyConf = '''
 {
     "template_path": "",
     "exclude_files": [],
     "exclude_folders": [],
     "ignore_empty_dir": true,
+
+    "gen_directory": false,
+    "enable_pagination": false,
+    "module_paging": "^(?!.*).$",
+    
     "comment_ignore_end": "</ignore>",
     "comment_ignore_begin": "<ignore>",
     "comment_marking_end": "</genHead>",
@@ -94,7 +104,7 @@ def AddOutlineToOutputFile(level :int, outline :str, outputFd :io.TextIOWrapper)
     outputFd.write(F'{prefix}{outline}\n')
     pass
 
-def AddTemplateToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper, profile :json):
+def AddTemplateToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper, profile :json, pre_fix: str, item_type: str):
     fileType = None
     fileContent = None
     supportLans = profile['support_language']
@@ -110,18 +120,18 @@ def AddTemplateToOutputFile(level :int, filePath :str, fileName :str, outputFd :
         logging.warn(f'Mate file name to suffix failed.\nFile name: {fileName}\nSupport lang: {supportLans}\n')
         return
     try:
-        with open(file=filePath, mode='r') as f:
+        with open(file=filePath, mode='r', encoding=file_encoding, errors=error_handle) as f:
             fileContent = f.read()
     except BaseException as e:
         logging.error(f'Fail to read file {filePath}, reason: '+e)
         fileContent = None
     if fileContent != None:
-        AddOutlineToOutputFile(level=level, outline=fileName, outputFd=outputFd)
+        AddOutlineToOutputFile(level=level, outline=pre_fix+' '+fileName, outputFd=outputFd)
         content = AnalysisCode(fileContent=fileContent, codeType=fileType, filePath=filePath, profile=profile)
         WriteContent(content=content, outputFd=outputFd)
     pass
 
-def AddTextToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper):
+def AddTextToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper, profile :json, pre_fix: str, item_type: str):
     fileContent = None
 
     supportLans = profile['support_text_format']
@@ -133,7 +143,7 @@ def AddTextToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.T
     fileName = fileName[:-len(curSuffix)]
     
     try:
-        with open(file=filePath, mode='r') as f:
+        with open(file=filePath, mode='r', encoding=file_encoding, errors=error_handle) as f:
             fileContent = f.read()
     except BaseException as e:
         logging.error(f'Fail to read file {filePath}, reason: '+e)
@@ -141,11 +151,35 @@ def AddTextToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.T
     if fileContent != None:
         fileContent = AnalysisText(fileContent)
         # fileContent = '--- \n' + fileContent + '\n\n---'
-        AddOutlineToOutputFile(level=level, outline=fileName, outputFd=outputFd)
+        AddOutlineToOutputFile(level=level, outline=pre_fix+' '+fileName, outputFd=outputFd)
         WriteContent(content=fileContent, outputFd=outputFd)
     pass
 
-def QuarySrcFile(level :int, path :str, profile :json, outputFd :io.TextIOWrapper):
+def AddSubModuleToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper, profile :json, pre_fix: str, item_type: str):
+    AddOutlineToOutputFile(level=level, outline=pre_fix+' '+fileName
+                                    #    .lstrip('0123456789.')
+                                       , outputFd=outputFd)
+
+def AddPageSpliter(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper, profile :json, pre_fix: str, item_type: str):
+    if(not profile['enable_pagination']):
+        logging.debug(f'pagination is not enabledm, skip.')
+        return
+    
+    # "item_type:\\s*(?P<item_type>[^|]+)\\|\\s*level:\\s*(?P<level>[^|]+)\\|\\s*outline:\\s*(?P<outline>[^|]+)\\|\\s*file_path:\\s*(?P<file_path>.+)"
+    # '\\ dir \\ 1 \\ 1 算法模版 \\ ./src/算法模版'
+    desc_str = f'item_type:{item_type}|level:{level}|outline:{pre_fix +" "+ fileName}|file_path:{filePath}'
+    module_paging_re = profile['module_paging']
+    match = re.match(module_paging_re, desc_str)
+
+    if(match):
+        logging.debug(f'{desc_str} matches pattern successful, new_page_spliter has written to file.')
+        outputFd.write(new_page_spliter)
+    else:
+        logging.debug(f'{desc_str} matches pattern fail, skip.')
+
+    pass
+
+def QuarySrcFile(level :int, path :str, profile :json, outputFd :io.TextIOWrapper, pre_fix: str = '') -> int:
     logging.debug(f'Quarying src dir {path}')
     items = os.listdir(path)
     items.sort(key=srcCmp)
@@ -156,31 +190,60 @@ def QuarySrcFile(level :int, path :str, profile :json, outputFd :io.TextIOWrappe
     # 如果是空文件夹
     if len(items) == 0 and profile['ignore_empty_dir']:
         logging.debug(f'Empty dir{path}, ignore')
-        return
+        return 0
+    
+    idx = 1
     for item in items:
+        item_type = 'unknown'
         item_path = os.path.join(path, item)
+        preprocessed_item = item.lstrip('0123456789.')
         # 判断是文件还是文件夹
         if os.path.isfile(item_path):
             logging.debug(f'Path {item_path} is file')
+
+            item_type = 'file'
             if not item in profile['exclude_files']:
                 if item.endswith(supportCodeSuffix):
                     logging.debug(f'Path {item_path} considered to be code')
-                    AddTemplateToOutputFile(filePath= item_path, level= level+1, fileName= item, profile=profile, outputFd=outputFd)
+
+                    item_type += ' code'
+
+                    new_pre_fix = pre_fix+'.'+str(idx) if pre_fix != '' else str(idx)
+                    AddTemplateToOutputFile(filePath= item_path, level= level+1, fileName= preprocessed_item, profile=profile, outputFd=outputFd, pre_fix=new_pre_fix, item_type= item_type)
+                    AddPageSpliter(filePath= item_path, level= level+1, fileName= preprocessed_item, profile=profile, outputFd=outputFd, pre_fix=new_pre_fix, item_type= item_type)
+
+                    idx += 1
+
                 elif item.endswith(supportTextSuffix):
                     logging.debug(f'Path {item_path} considered to be text')
-                    AddTextToOutputFile(filePath= item_path, level= level+1, fileName= item, outputFd=outputFd)
+
+                    item_type += ' text'
+
+                    new_pre_fix = pre_fix+'.'+str(idx) if pre_fix != '' else str(idx)
+                    AddTextToOutputFile(filePath= item_path, level= level+1, fileName= preprocessed_item, profile=profile, outputFd=outputFd, pre_fix=new_pre_fix, item_type= item_type)
+                    AddPageSpliter(filePath= item_path, level= level+1, fileName= preprocessed_item, profile=profile, outputFd=outputFd, pre_fix=new_pre_fix, item_type= item_type)
+
+                    idx += 1
 
         elif os.path.isdir(item_path):
+            item_type = 'dir'
             if not item in profile['exclude_folders']:
                 logging.debug(f'Path {item_path} is dir')
-                AddOutlineToOutputFile(level=level+1, outline=item
-                                    #    .lstrip('0123456789.')
-                                       , outputFd=outputFd)
-                QuarySrcFile(level=level+1, path=item_path, profile=profile, outputFd=outputFd)
+
+                new_pre_fix = pre_fix+'.'+str(idx) if pre_fix != '' else str(idx)
+                AddSubModuleToOutputFile(filePath= item_path, level=level+1, fileName=preprocessed_item, profile=profile, outputFd=outputFd, pre_fix=new_pre_fix, item_type= item_type)
+                not_empty= QuarySrcFile(level=level+1, path=item_path, profile=profile, outputFd=outputFd, pre_fix=new_pre_fix)
+                AddPageSpliter(filePath= item_path, level= level+1, fileName= preprocessed_item, profile=profile, outputFd=outputFd, pre_fix=new_pre_fix, item_type= item_type)
+
+                idx += not_empty
+
+    return 1
     pass
 
 def Generate(srcPath :str, outputFile :str, profile :json):
-    with open(outputFile, 'w') as f:
+    with open(outputFile, 'w', encoding=file_encoding, errors=error_handle) as f:
+        if(profile['enable_pagination']):
+            f.write(new_page_spliter)
         QuarySrcFile(level=0,path=srcPath,profile=profile,outputFd=f)
     pass
 
@@ -206,7 +269,7 @@ def fixProFile(profileStr: str) -> tuple[int,dict]:
 def readProFile(profilePath :str) -> dict:
     if not os.path.exists(profilePath):
         try:
-            with open(profilePath,'w') as file:
+            with open(profilePath,'w', encoding=file_encoding, errors=error_handle) as file:
                 json.dump({},file,indent=4)
         except BaseException as e:
             logging.fatal(f'Fail to crate new profile on{profilePath}, {e}')
@@ -214,7 +277,7 @@ def readProFile(profilePath :str) -> dict:
     
     try:
         content = ''
-        with open(profilePath,'r') as file:
+        with open(profilePath,'r', encoding=file_encoding, errors=error_handle) as file:
             content = file.read()
     except BaseException as e:
         logging.fatal(f'Fail to read profile: {e}.')
@@ -223,7 +286,7 @@ def readProFile(profilePath :str) -> dict:
     states, profile = fixProFile(content)
     if states:
         try:
-            with open(profilePath,'w') as file:
+            with open(profilePath,'w', encoding=file_encoding, errors=error_handle) as file:
                 json.dump(profile,file,indent=4)
         except BaseException as e:
             logging.error(f'Fail to fix profile.{e}')
