@@ -9,7 +9,6 @@
         "Todo",
         "8.others"
     ],
-    "output_file": "output.md",
     "comment_ignore_end": "</ignore>",
     "comment_ignore_begin": "<ignore>",
     "comment_marking_end": "</genHead>",
