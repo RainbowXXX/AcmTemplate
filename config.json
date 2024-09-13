@@ -24,7 +24,6 @@
         ".conf": ""
     },
     "ignore_empty_dir": true,
-    "gen_directory": false,
     "enable_pagination": true,
     "module_paging": "^item_type:\\s*(?P<item_type>[^|]+)\\|\\s*level:\\s*(?P<level>1)\\|\\s*outline:\\s*(?P<outline>[^|]+)\\|\\s*file_path:\\s*(?P<file_path>.+)$"
 }

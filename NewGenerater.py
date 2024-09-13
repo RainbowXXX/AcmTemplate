@@ -17,7 +17,6 @@ enmptyConf = '''
     "exclude_folders": [],
     "ignore_empty_dir": true,
 
-    "gen_directory": false,
     "enable_pagination": false,
     "module_paging": "^(?!.*).$",
     
