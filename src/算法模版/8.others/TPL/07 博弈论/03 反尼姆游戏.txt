@@ -1,8 +1,0 @@
-反尼姆游戏
-有n堆 第i堆a[i]个 石头
-两玩家轮流操作 每次挑选一堆 拿走任意个石头 但不能不取
-取走最后一个的输
-sg=0 FOR(i,1,n) sg^=a[i]
-ok=false FOR(i,1,n) if(a[i]>1) ok=true
-if(ok) {if(sg!=0) 先手胜 else 后手胜}
-else {if(sg==0) 先手胜 else 后手胜}

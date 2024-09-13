@@ -1,4 +1,0 @@
-cin.clear和cin.sync可以清除cin的缓存区
-让输入准确
-cout.flush(); cout<<flush;
-fflush(stdout); endl  清空缓存区

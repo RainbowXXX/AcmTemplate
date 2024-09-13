@@ -1,4 +1,0 @@
-自然常数 db e = exp(1.0);
-exp(n) : e ^ n
-
-圆周率 db PI = acos(-1.0);

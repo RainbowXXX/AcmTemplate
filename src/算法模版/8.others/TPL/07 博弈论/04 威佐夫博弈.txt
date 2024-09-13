@@ -1,6 +1,0 @@
-威佐夫博弈
-有两堆石头 一堆a个 一堆b个
-两人轮流从某一堆或同时从两堆取同样的石头 每次至少取一个 无上限
-最后取光者得胜
-constexpr db GOLD=sqrt(5.0)+1.0;
-if(a>b) swap(a,b) if(floor(GOLD/2.0*(b-a))==a) 先手胜 else 后手胜
