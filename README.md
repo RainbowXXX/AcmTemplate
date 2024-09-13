@@ -51,7 +51,6 @@ mkdir src
         ".conf": ""
     },
     "ignore_empty_dir": true,                   // 如果是true, 将忽略空文件夹
-    "gen_directory": false,                     // 如果是true, 将会生成目录
     "enable_pagination": true,                  // 如果是true, 将会根据module_paging项中的正则表达式决定分页, 如果正则表达式能够匹配描述字符串, 那么这一个标题对应的块将会对 页对齐
     // 描述字符串的格式为 'item_type:{item_type}|level:{level}|outline:{pre_fix +" "+ fileName}|file_path:{filePath}' 以下的正则表达式的意思是 让1级块页对齐
     "module_paging": "^item_type:\\s*(?P<item_type>[^|]+)\\|\\s*level:\\s*(?P<level>1)\\|\\s*outline:\\s*(?P<outline>[^|]+)\\|\\s*file_path:\\s*(?P<file_path>.+)$"
