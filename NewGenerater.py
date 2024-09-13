@@ -105,7 +105,7 @@ def AddOutlineToOutputFile(level :int, outline :str, outputFd :io.TextIOWrapper)
     global Contents
     prefix = '#' * level + ' '
     outputFd.write(F'{prefix}{outline}\n')
-    Contents += f'[{outline}](#{outline})\n'
+    Contents += '>' + '\t' * (level-1) + f'[{outline}](#{outline})\n'
     pass
 
 def AddTemplateToOutputFile(level :int, filePath :str, fileName :str, outputFd :io.TextIOWrapper, profile :json, pre_fix: str, item_type: str):
