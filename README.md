@@ -4,4 +4,9 @@ ACM代码模板
 
 src文件下的文件夹和文件是模板
 
-MDGenerater.py程序是用来生成最终的markdown文件的(方便打印)
+使用方式:
+修改config.json文件后, 在终端运行以下命令:
+``` shell
+make clean
+make
+```
